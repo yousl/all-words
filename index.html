@@ -9,7 +9,7 @@
     crossorigin="anonymous">
   <link rel="stylesheet" href="./public/style.css">
   <script src="./public/vue.min.js"></script>
-  <script src="./public/index.js"></script>
+  <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
 </head>
 
 <body>
@@ -19,6 +19,28 @@
         <h1>JavaScript编程入门</h1>
       </div>
     </div>
+
+    <div class="container">
+      <form>
+        <div class="form-group">
+          <label for="name">个人姓名</label>
+          <input v-model="nameString" type="name" class="form-control" id="name" placeholder="请输入你的姓名">
+        </div>
+        <div class="form-group">
+          <label for="account">新大账号</label>
+          <input v-model="accountString" type="account" class="form-control" id="account" placeholder="请输入你的新大账号（注册手机号码或邮箱）">
+        </div>
+        <div class="form-group">
+          <label for="content">想说的话</label>
+          <input v-model="contentString" type="content" class="form-control" id="content" placeholder="请输入你想对徐老师说的话">
+        </div>
+        <div class="checkbox">
+          <label><input type="checkbox"> 记住填写的内容 </label>
+        </div>
+        <div class="btn btn-primary" v-on:click="sendData">提交发送</div>
+      </form>
+    </div>
+
     <div class="container">
       <div class="panel panel-default">
         <div class="panel-heading">
@@ -53,11 +75,49 @@
 
   // 把收集的数据放在这里
 
-  new Vue({
+  var app = new Vue({
     el: '#app',   // #app 和html中div#id的 app 对应
     data: {
-      wordsList: wordsList  // 变量wordsList可以在html使用
+      wordsList: [],  // 变量wordsList可以在html使用
+      nameString: '',    // 变量nameString默认空白，同步显示用户填入的“用户姓名”
+      accountString: '', // 变量accountString默认空白，同步显示用户填入的”新大账号“
+      contentString: ''  // 变量contentString默认空白，同步显示用户填入的“想说的话”
+    },
+    methods: {
+      fetchDate: function () {
+        axios.get('https://js.xinshengdaxue.com/api/v1/learnJS/course/1/words')
+          .then(function (response) {
+            if (response.data.code === 1) {
+              app.wordsList = response.data.words;
+            }
+            else {
+              alert("读取数据失败。");
+            }
+          })
+          .catch(function (error) {
+            console.log(error);
+          });
+      },
+      sendData: function () {  // 定义一个函数，axios post 出去三个参数，拿到response 后alert 结果，这里在 html 中绑定了一个 click 事件，一旦用户click按钮，就会触发这个函数执行
+        axios.post('https://js.xinshengdaxue.com/api/v1/learnJS/sayToMe', {
+          name: app.nameString, // 拿到表单的name字段
+          account: app.accountString, // 拿到表单的account字段
+          content: app.contentString  // 拿到表单的content字段
+        })
+          .then(function (response) {
+            if (response.data.code === 1) {
+              alert("提交成功。");
+            }
+            else {
+              alert("提交失败，请重试。");
+            }
+          })
+          .catch(function (error) {
+            console.log(error); // 函数执行过程中，如果出错，就会直接跳到这里，浏览器conosle打印错误日志
+          });
+      }
     }
   });
+  app.fetchDate();
 
 </script>
